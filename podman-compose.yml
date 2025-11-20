@@ -1,10 +1,32 @@
 services:
   app:
-    image: docker.io/library/php:8.2-fpm
-    working_dir: /var/www/html
+    build:
+      context: .                  # <— ROOT FOLDER
+      dockerfile: ./docker/Dockerfile
+    container_name: overads-app
+    working_dir: /var/www
     volumes:
-      - ./:/var/www/html
-    env_file:
-      - .env.podman
+      - .:/var/www
     depends_on:
       - db
+
+  web:
+    image: nginx:latest
+    container_name: overads-web
+    ports:
+      - 8000:80
+    volumes:
+      - .:/var/www
+      - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  db:
+    image: postgres:15
+    container_name: overads-db
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: overads
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
