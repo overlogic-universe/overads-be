@@ -1,0 +1,10 @@
+services:
+  app:
+    image: docker.io/library/php:8.2-fpm
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    env_file:
+      - .env.podman
+    depends_on:
+      - db
