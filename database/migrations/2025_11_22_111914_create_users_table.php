@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->boolean('is_admin')->default(false);
-            $table->date('expiration_date')->nullable();
+            $table->timestamp('expiration_date')->nullable();
             $table->foreignId('package_id')->nullable()->constrained('packages');
             $table->string('avatar_url')->nullable();
             $table->timestamps();
