@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('ads', function (Blueprint $table) {
-            $table->id();
+            $table->id()->primary();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            $table->enum('type', ['single', 'carousel', 'video'])->default('single');
+            $table->enum('type', ['images', 'video'])->default('video');
             $table->text('description')->nullable();
             $table->string('theme')->nullable();
             $table->json('platforms')->nullable();

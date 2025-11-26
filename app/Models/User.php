@@ -13,12 +13,12 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $fillable = [
-        'uuid', 'full_name', 'business_name', 'phone', 'email', 'password', 'credits', 'is_admin', 'avatar_url',
+        'uuid', 'full_name', 'business_name', 'phone', 'email', 'password', 'avatar_url', 'expiration_date', 'package_id',
     ];
 
     protected $hidden = ['password'];
 
-    protected $casts = ['is_admin' => 'boolean', 'credits' => 'integer'];
+    // protected $casts = ['is_admin' => 'boolean', 'credits' => 'integer'];
 
     protected static function booted()
     {
@@ -29,9 +29,9 @@ class User extends Authenticatable
         });
     }
 
-    public function purchases()
+    public function orders()
     {
-        return $this->hasMany(Purchase::class);
+        return $this->hasMany(Order::class);
     }
 
     public function ads()

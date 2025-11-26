@@ -11,11 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('settings', function (Blueprint $table) {
-            $table->id()->primary();
-            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('key')->index();
-            $table->text('value'); // encrypted JSON/string
+        Schema::create('packages', function (Blueprint $table) {
+            $table->id();
+            $table->string('name'); // Starter, Business, Pro
+            $table->integer('price'); // 50000, 180000, 100000
+            $table->integer('original_price'); // 100000, 350000, 200000
+            $table->json('benefits'); // list benefit per paket
             $table->timestamps();
         });
     }
@@ -25,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('settings');
+        Schema::dropIfExists('packages');
     }
 };

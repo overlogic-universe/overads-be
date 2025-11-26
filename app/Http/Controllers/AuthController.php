@@ -6,8 +6,8 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Request;
 
 class AuthController extends Controller
 {
@@ -20,28 +20,28 @@ class AuthController extends Controller
      *     path="/api/register",
      *     summary="Register user baru",
      *     tags={"Auth"},
-     * 
+     *
      *     @OA\Parameter(
      *         name="Accept",
      *         in="header",
      *         required=true,
      *         @OA\Schema(type="string", example="application/json")
      *     ),
-     * 
+     *
      *     @OA\RequestBody(
      *         required=true,
-     * 
+     *
      *         @OA\JsonContent(
      *             required={"full_name","business_name","phone","email","password"},
-     * 
+     *
      *             @OA\Property(property="full_name", type="string", example="John Doe"),
      *             @OA\Property(property="business_name", type="string", example="Doe Store"),
-     *             @OA\Property(property="phone", type="string", example="+628123456789"),
+     *             @OA\Property(property="phone", type="string", example="628123456789"),
      *             @OA\Property(property="email", type="string", example="example@mail.com"),
      *             @OA\Property(property="password", type="string", example="secret123")
      *         )
      *     ),
-     * 
+     *
      *     @OA\Response(
      *         response=201,
      *         description="User berhasil didaftarkan",
@@ -63,15 +63,15 @@ class AuthController extends Controller
         try {
             $user = User::create($data);
             $token = $user->createToken('api-token')->plainTextToken;
-            
+
             return response()->json(['user' => $user, 'token' => $token], 201);
-        
+
         } catch (\Illuminate\Database\QueryException $e) {
             if ($e->getCode() == 23000) {
                 return response()->json(['error' => 'Email already exists'], 422);
             }
 
-            return response()->json(['error' => 'Registration failed'], 500);
+            return response()->json(['error' => $e], 500);
 
         } catch (\Throwable $th) {
             return response()->json(['error' => 'Internal server error'], 500);  // Perbaiki status code
@@ -83,7 +83,7 @@ class AuthController extends Controller
      *     path="/api/login",
      *     summary="Login user",
      *     tags={"Auth"},
-     *     
+     *
      *     @OA\Parameter(
      *         name="Accept",
      *         in="header",
@@ -107,11 +107,11 @@ class AuthController extends Controller
      *         description="Login Successful",
      *         @OA\JsonContent()
      *     ),
-     * 
+     *
      *     @OA\Response(
      *         response=401,
-     *         description="Invalid credentials"
-     *         @OA\JsonContent() 
+     *         description="Invalid credentials",
+     *         @OA\JsonContent()
      *     )
      * )
      */
@@ -142,14 +142,14 @@ class AuthController extends Controller
      *     summary="Logout user",
      *     security={{"sanctum": {}}},
      *     tags={"Auth"},
-     *     
+     *
      *     @OA\Parameter(
      *         name="Accept",
      *         in="header",
      *         required=true,
      *         @OA\Schema(type="string", example="application/json")
      *     ),
-     * 
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Logout Successful",

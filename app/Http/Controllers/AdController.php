@@ -2,43 +2,145 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AdStoreRequest;
-use App\Http\Resources\AdResource;
 use App\Models\Ad;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class AdController extends Controller
 {
-    public function index(Request $req){ return AdResource::collection($req->user()->ads()->paginate(15)); }
-    public function store(AdStoreRequest $req){
-        $data = $req->only(['name','type','description','theme','platforms']);
-        $data['platforms'] = $req->platforms;
-        if($req->hasFile('reference_media')){
-            $path = $req->file('reference_media')->store('ads', 'public');
-            $data['reference_media'] = $path;
-        }
-        $ad = $req->user()->ads()->create($data);
-        return new AdResource($ad);
+    /**
+     * @OA\Get(
+     *     path="/api/ads",
+     *     summary="Get all ads",
+     *     tags={"Ads"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Success")
+     * )
+     */
+    public function index()
+    {
+        $user = Auth::user();
+
+        $ads = Ad::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return response()->json($ads);
     }
-    public function show(Request $req, Ad $ad){ $this->authorizeOwner($req->user(), $ad); return new AdResource($ad); }
-    public function update(AdStoreRequest $req, Ad $ad){
-        $this->authorizeOwner($req->user(), $ad);
-        $data = $req->only(['name','type','description','theme','platforms']);
-        if($req->hasFile('reference_media')){
-            if($ad->reference_media) Storage::disk('public')->delete($ad->reference_media);
-            $data['reference_media'] = $req->file('reference_media')->store('ads','public');
-        }
-        $ad->update($data);
-        return new AdResource($ad);
+
+    /**
+     * @OA\Post(
+     *     path="/api/ads",
+     *     summary="Create new ad",
+     *     tags={"Ads"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"name","type"},
+     *             @OA\Property(property="name", type="string", example="Iklan Promo September"),
+     *             @OA\Property(property="type", type="string", enum={"images","video"}, example="video"),
+     *             @OA\Property(property="description", type="string", example="Deskripsi iklan"),
+     *             @OA\Property(property="theme", type="string", example="dark"),
+     *             @OA\Property(property="platforms", type="array", @OA\Items(type="string"), example={"tiktok", "facebook"}),
+     *             @OA\Property(property="reference_media", type="string", example="https://example.com/image.jpg")
+     *         )
+     *     ),
+     *     @OA\Response(response=201, description="Created")
+     * )
+     */
+    public function store(Request $request)
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'name' => 'required|string',
+            'type' => 'required|in:images,video',
+            'description' => 'nullable|string',
+            'theme' => 'nullable|string',
+            'platforms' => 'nullable|array',
+            'reference_media' => 'nullable|string',
+        ]);
+
+        $ad = Ad::create([
+            'user_id' => $user->id,
+            ...$validated,
+        ]);
+
+        return response()->json($ad, 201);
     }
-    public function destroy(Request $req, Ad $ad){
-        $this->authorizeOwner($req->user(), $ad);
-        if($ad->reference_media) Storage::disk('public')->delete($ad->reference_media);
+
+    /**
+     * @OA\Get(
+     *     path="/api/ads/{id}",
+     *     summary="Get ad detail",
+     *     tags={"Ads"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=200, description="Success"),
+     *     @OA\Response(response=404, description="Not Found")
+     * )
+     */
+    public function show($id)
+    {
+        $ad = Ad::findOrFail($id);
+        return response()->json($ad);
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/api/ads/{id}",
+     *     summary="Update ad",
+     *     tags={"Ads"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="name", type="string"),
+     *             @OA\Property(property="type", type="string", enum={"images","video"}),
+     *             @OA\Property(property="description", type="string"),
+     *             @OA\Property(property="theme", type="string"),
+     *             @OA\Property(property="platforms", type="array", @OA\Items(type="string")),
+     *             @OA\Property(property="reference_media", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Updated")
+     * )
+     */
+    public function update(Request $request, $id)
+    {
+        $ad = Ad::findOrFail($id);
+
+        $validated = $request->validate([
+            'name' => 'sometimes|string',
+            'type' => 'sometimes|in:images,video',
+            'description' => 'nullable|string',
+            'theme' => 'nullable|string',
+            'platforms' => 'nullable|array',
+            'reference_media' => 'nullable|string',
+        ]);
+
+        $ad->update($validated);
+
+        return response()->json($ad);
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/ads/{id}",
+     *     summary="Delete ad",
+     *     tags={"Ads"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+     *     @OA\Response(response=204, description="Deleted")
+     * )
+     */
+    public function destroy($id)
+    {
+        $ad = Ad::findOrFail($id);
         $ad->delete();
-        return response()->json(['deleted'=>true]);
-    }
-    protected function authorizeOwner($user, Ad $ad){
-        if($user->id !== $ad->user_id && !$user->is_admin) abort(403,'Forbidden');
+
+        return response()->json(null, 204);
     }
 }
