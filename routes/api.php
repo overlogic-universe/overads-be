@@ -41,6 +41,13 @@ Route::controller(AuthController::class)->group(function () {
     Route::middleware('auth:sanctum')->get('/user', 'getUser');
 });
 
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/ads', [AdController::class, 'store']);
+    Route::post('/ads/{ads}/generate', [AdController::class, 'generate']);
+    Route::post('/ads/{ads}/schedule', [AdController::class, 'schedule']);
+});
+
+
 
 // Route::post('/register', [AuthController::class, 'register']);
 // Route::post('/login', [AuthController::class, 'login']);
