@@ -27,7 +27,7 @@ class AdStoreRequest extends FormRequest
             'description'=>'nullable|string',
             'theme'=>'nullable|string|max:100',
             'platforms'=>'required|array|min:1',
-            'platforms.*'=>'in:instagram,facebook,tiktok,linkedin',
+            'platforms.*'=>'in:instagram,facebook,instagram,linkedin',
             'reference_media'=>'nullable|file|mimes:jpeg,png,jpg,webp,mp4|max:51200'
         ];
     }

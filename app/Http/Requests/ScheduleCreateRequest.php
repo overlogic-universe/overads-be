@@ -27,7 +27,7 @@ class ScheduleCreateRequest extends FormRequest
             'time' => 'required|date_format:H:i',
             'timezone' => 'required|string',
             'platforms' => 'required|array|min:1',
-            'platforms.*' => 'in:instagram,facebook,tiktok,linkedin',
+            'platforms.*' => 'in:instagram,facebook,instagram,linkedin',
         ];
     }
 }

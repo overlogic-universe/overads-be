@@ -6,6 +6,7 @@ use App\Jobs\GenerateAdImageJob;
 use App\Models\Ad;
 use App\Models\AdGeneration;
 use App\Models\AdSchedule;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -49,7 +50,7 @@ class AdController extends Controller
      *             @OA\Property(property="type", type="string", enum={"images","video"}, example="video"),
      *             @OA\Property(property="description", type="string", example="Deskripsi iklan"),
      *             @OA\Property(property="theme", type="string", example="dark"),
-     *             @OA\Property(property="platforms", type="array", @OA\Items(type="string"), example={"tiktok", "facebook"}),
+     *             @OA\Property(property="platforms", type="array", @OA\Items(type="string"), example={"instagram", "facebook"}),
      *             @OA\Property(property="reference_media", type="string", example="https://example.com/image.jpg")
      *         )
      *     ),
@@ -255,14 +256,35 @@ class AdController extends Controller
      */
     public function schedule(Request $request, Ad $ads)
     {
+        $request->validate([
+            'scheduled_at' => 'required|date|after:now',
+        ]);
+
         foreach ($ads->platforms as $platform) {
+
+            // 1️⃣ Simpan jadwal
             AdSchedule::create([
                 'ads_id' => $ads->id,
                 'platform' => $platform,
                 'scheduled_at' => $request->scheduled_at,
+                'status' => 'pending',
             ]);
+
+            // 2️⃣ Buat generation (status pending)
+            $generation = AdGeneration::create([
+                'ads_id' => $ads->id,
+                'prompt' => $ads->description,
+                'status' => 'pending',
+            ]);
+
+            // 3️⃣ Dispatch job DENGAN DELAY ⏰
+            GenerateAdImageJob::dispatch($generation)
+                ->delay(Carbon::parse($request->scheduled_at));
         }
 
-        return response()->json(['message' => 'Scheduled']);
+        return response()->json([
+            'message' => 'Ad scheduled successfully',
+            'scheduled_at' => $request->scheduled_at,
+        ]);
     }
 }
