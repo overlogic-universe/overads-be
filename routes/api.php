@@ -1,12 +1,13 @@
 <?php
 
 use App\Http\Controllers\AdController;
+use App\Http\Controllers\AdGenerationController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PackageController;
 use App\Http\Controllers\XenditController;
-
+use App\Models\AdGeneration;
 
 // Packages
 Route::get("/packages", [PackageController::class, 'index']);
@@ -45,6 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/ads', [AdController::class, 'store']);
     Route::post('/ads/{ads}/generate', [AdController::class, 'generate']);
     Route::post('/ads/{ads}/schedule', [AdController::class, 'schedule']);
+
+    Route::get('/ads-generations', [AdGenerationController::class, 'index']);
+    Route::get('/ads-generations/{id}', [AdGenerationController::class, 'show']);
+    Route::get('/ads/{ads}/generations', [AdGenerationController::class, 'byAd']);
+
 });
 
 
