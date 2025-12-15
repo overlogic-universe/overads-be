@@ -262,20 +262,21 @@ class AdController extends Controller
 
         foreach ($ads->platforms as $platform) {
 
-            // 1️⃣ Simpan jadwal
-            AdSchedule::create([
-                'ads_id' => $ads->id,
-                'platform' => $platform,
-                'scheduled_at' => $request->scheduled_at,
-                'status' => 'pending',
-            ]);
-
             // 2️⃣ Buat generation (status pending)
             $generation = AdGeneration::create([
                 'ads_id' => $ads->id,
                 'prompt' => $ads->description,
                 'status' => 'pending',
             ]);
+            // 1️⃣ Simpan jadwal
+            AdSchedule::create([
+                'ads_id' => $ads->id,
+                'platform' => $platform,
+                'scheduled_at' => $request->scheduled_at,
+                'generation_ads_id' => $generation->id,
+                'status' => 'pending',
+            ]);
+
 
             // 3️⃣ Dispatch job DENGAN DELAY ⏰
             GenerateAdImageJob::dispatch($generation)

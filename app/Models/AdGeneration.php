@@ -14,4 +14,8 @@ class AdGeneration extends Model
     {
         return $this->belongsTo(Ad::class);
     }
+     public function schedules()
+    {
+        return $this->hasMany(AdSchedule::class, 'generation_ads_id');
+    }
 }

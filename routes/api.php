@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\AdGenerationController;
+use App\Http\Controllers\AdScheduleController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrdersController;
@@ -50,9 +51,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ads-generations', [AdGenerationController::class, 'index']);
     Route::get('/ads-generations/{id}', [AdGenerationController::class, 'show']);
     Route::get('/ads/{ads}/generations', [AdGenerationController::class, 'byAd']);
-
+    Route::get('/ads/{ads}/generations', [AdGenerationController::class, 'byAd']);
+  // Ad Schedules ✨
+    Route::get('/ad-schedules', [AdScheduleController::class, 'index']);
+    Route::get('/ad-schedules/{id}', [AdScheduleController::class, 'show']);
+    Route::get('/ads/{ads}/schedules', [AdScheduleController::class, 'byAd']);
 });
 
+// Route::get('/ads/schedules', [AdScheduleController::class, 'index']);
 
 
 // Route::post('/register', [AuthController::class, 'register']);

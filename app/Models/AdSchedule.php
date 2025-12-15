@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AdSchedule extends Model
 {
     protected $fillable = [
-        'ads_id','platform','scheduled_at','status'
+        'ads_id','platform','scheduled_at','status', "generation_ads_id"
     ];
 
     protected $casts = [
@@ -17,5 +17,14 @@ class AdSchedule extends Model
     public function ads()
     {
         return $this->belongsTo(Ad::class);
+    }
+     public function ad()
+    {
+        return $this->belongsTo(Ad::class, 'ads_id');
+    }
+
+    public function generation()
+    {
+        return $this->belongsTo(AdGeneration::class, 'generation_ads_id');
     }
 }
