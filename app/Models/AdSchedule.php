@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AdSchedule extends Model
 {
     protected $fillable = [
-        'ads_id','platform','scheduled_at','status', "generation_ads_id"
+        'ads_id','platform','scheduled_at','status', "generation_ads_id",'user_id'
     ];
 
     protected $casts = [

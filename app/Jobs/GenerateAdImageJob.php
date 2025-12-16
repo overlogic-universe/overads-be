@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\AdGeneration;
 use App\Models\Setting;
+use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Auth;
@@ -34,9 +35,11 @@ class GenerateAdImageJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            $user = Auth::user();
-
             // code...
+            $user = User::where('id', $this->userId)->first();
+            if($user->credit <= 0) {
+                throw new \Exception('Kredit rendah');
+            }
             Log::info('[AdImageJob] Started', [
                 'generation_id' => $this->generation->id,
             ]);
@@ -163,6 +166,12 @@ class GenerateAdImageJob implements ShouldQueue
                 'generation_id' => $this->generation->id,
                 'path' => $path,
             ]);
+            if($user->credit >=1) {
+                $user->update([
+                    'credit' => $user->credit - 1,
+                ]);
+                throw new \Exception('Kredit rendah');
+            }
         } catch (\Throwable $th) {
             Log::info('[AdImageJob] Failed', [
             ]);

@@ -131,10 +131,16 @@ class XenditController extends Controller
 
         if ($status === 'PAID') {
             $user = User::find($order->user_id);
+            $generateLimit = [
+                1 => 5,   // Starter
+                2 => 20,  // Business
+                3 => 10,  // Pro
+            ];
 
             if ($user) {
                 $user->package_id = $order->package_id;
                 $user->expiration_date = now()->addDays(30); // contoh: aktif 30 hari
+                $user->credit += $generateLimit[$order->package_id] ?? 0;
                 $user->save();
             }
         }

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class AdGeneration extends Model
 {
     protected $fillable = [
-        'ads_id', 'prompt', 'status', 'result_media',
+        'ads_id', 'prompt', 'status', 'result_media', 'user_id'
     ];
 
     public function ads()

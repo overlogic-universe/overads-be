@@ -9,6 +9,7 @@ use App\Models\AdSchedule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class AdController extends Controller
 {
@@ -69,6 +70,7 @@ class AdController extends Controller
             'theme' => 'nullable|string',
             'platforms' => 'nullable|array',
             'reference_media' => 'nullable|string',
+
         ]);
 
         $ad = Ad::create([
@@ -197,11 +199,11 @@ class AdController extends Controller
     public function generate(Ad $ads)
     {
         $user = Auth::user();
+        Log::info('Generating ad for user', ['user_id' => $user->id, 'ad_id' => $ads->id]);
         $generation = AdGeneration::create([
             'ads_id' => $ads->id,
             'prompt' => $ads->description,
             'user_id' => $user->id,
-
         ]);
 
         dispatch(new GenerateAdImageJob($generation, $user->id));
