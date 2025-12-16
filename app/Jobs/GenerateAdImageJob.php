@@ -169,6 +169,7 @@ class GenerateAdImageJob implements ShouldQueue
                 $user->update([
                     'credit' => $user->credit - 1,
                 ]);
+            } else {
                 throw new \Exception('Kredit rendah');
             }
         } catch (\Throwable $th) {
