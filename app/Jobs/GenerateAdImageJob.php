@@ -7,7 +7,6 @@ use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -24,8 +23,7 @@ class GenerateAdImageJob implements ShouldQueue
     public function __construct(
         public AdGeneration $generation,
         public int $userId
-        )
-    {
+    ) {
         //
     }
 
@@ -37,7 +35,7 @@ class GenerateAdImageJob implements ShouldQueue
         try {
             // code...
             $user = User::where('id', $this->userId)->first();
-            if($user->credit <= 0) {
+            if ($user->credit <= 0) {
                 throw new \Exception('Kredit rendah');
             }
             Log::info('[AdImageJob] Started', [
@@ -133,6 +131,7 @@ class GenerateAdImageJob implements ShouldQueue
                     'image_url' => $imageUrl,
                 ]
             );
+            sleep(10);
 
             if (! $mediaRes->successful()) {
                 Log::error('[IG] Media create failed', [
@@ -166,7 +165,7 @@ class GenerateAdImageJob implements ShouldQueue
                 'generation_id' => $this->generation->id,
                 'path' => $path,
             ]);
-            if($user->credit >=1) {
+            if ($user->credit >= 1) {
                 $user->update([
                     'credit' => $user->credit - 1,
                 ]);
