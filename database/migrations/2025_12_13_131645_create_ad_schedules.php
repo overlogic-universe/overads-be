@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('ad_schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ads_id')->constrained('ads')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('generation_ads_id')->constrained('ad_generations')->cascadeOnDelete();
             $table->enum('platform', ['instagram', 'facebook']);
             $table->timestamp('scheduled_at');

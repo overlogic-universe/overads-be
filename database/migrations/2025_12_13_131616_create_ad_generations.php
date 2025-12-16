@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('ad_generations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('ads_id')->constrained('ads')->cascadeOnDelete();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('type', ['image', 'video'])->default('image');
             $table->text('prompt');
             $table->enum('status', [
@@ -21,6 +22,7 @@ return new class extends Migration
                 'processing',
                 'generated',
                 'failed',
+                'uploaded',
             ])->default('pending');
 
             $table->string('result_media')->nullable();

@@ -7,14 +7,32 @@ use Illuminate\Support\Facades\Crypt;
 
 class Setting extends Model
 {
-    protected $fillable = ['user_id', 'key', 'value'];
+    protected $fillable = ['user_id', 'apiKey', 'igId'];
 
-    public function setValueAttribute($v)
+    public function setApiKeyAttribute($v)
     {
-        $this->attributes['value'] = Crypt::encryptString(is_string($v) ? $v : json_encode($v));
+        $this->attributes['apiKey'] =
+            Crypt::encryptString(is_string($v) ? $v : json_encode($v));
     }
 
-    public function getValueAttribute($v)
+    public function getApiKeyAttribute($v)
+    {
+        try {
+            $de = Crypt::decryptString($v);
+
+            return json_decode($de, true) ?? $de;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    public function setIgIdAttribute($v)
+    {
+        $this->attributes['igId'] =
+            Crypt::encryptString(is_string($v) ? $v : json_encode($v));
+    }
+
+    public function getIgIdAttribute($v)
     {
         try {
             $de = Crypt::decryptString($v);

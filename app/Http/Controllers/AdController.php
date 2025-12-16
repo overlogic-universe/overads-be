@@ -196,12 +196,15 @@ class AdController extends Controller
      */
     public function generate(Ad $ads)
     {
+        $user = Auth::user();
         $generation = AdGeneration::create([
             'ads_id' => $ads->id,
             'prompt' => $ads->description,
+            'user_id' => $user->id,
+
         ]);
 
-        dispatch(new GenerateAdImageJob($generation));
+        dispatch(new GenerateAdImageJob($generation, $user->id));
 
         return response()->json([
             'generation_id' => $generation->id,
@@ -259,6 +262,7 @@ class AdController extends Controller
         $request->validate([
             'scheduled_at' => 'required|date|after:now',
         ]);
+        $user = Auth::user();
 
         foreach ($ads->platforms as $platform) {
 
@@ -267,6 +271,7 @@ class AdController extends Controller
                 'ads_id' => $ads->id,
                 'prompt' => $ads->description,
                 'status' => 'pending',
+                'user_id' => $user->id,
             ]);
             // 1️⃣ Simpan jadwal
             AdSchedule::create([
@@ -275,8 +280,8 @@ class AdController extends Controller
                 'scheduled_at' => $request->scheduled_at,
                 'generation_ads_id' => $generation->id,
                 'status' => 'pending',
+                'user_id' => $user->id,
             ]);
-
 
             // 3️⃣ Dispatch job DENGAN DELAY ⏰
             GenerateAdImageJob::dispatch($generation)

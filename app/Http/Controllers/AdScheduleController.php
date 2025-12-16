@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AdSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdScheduleController extends Controller
 {
@@ -19,6 +20,7 @@ class AdScheduleController extends Controller
      *         in="query",
      *         required=false,
      *         description="Filter by Ad ID",
+     *
      *         @OA\Schema(type="integer", example=12)
      *     ),
      *
@@ -27,19 +29,24 @@ class AdScheduleController extends Controller
      *         in="query",
      *         required=false,
      *         description="Filter by platform",
+     *
      *         @OA\Schema(type="string", example="instagram")
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Ad schedules found",
+     *
      *         @OA\JsonContent(
      *             type="object",
+     *
      *             @OA\Property(
      *                 property="data",
      *                 type="array",
+     *
      *                 @OA\Items(
      *                     type="object",
+     *
      *                     @OA\Property(property="id", type="integer", example=1),
      *                     @OA\Property(property="ads_id", type="integer", example=12),
      *                     @OA\Property(property="platform", type="string", example="instagram"),
@@ -54,23 +61,26 @@ class AdScheduleController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+
         $query = AdSchedule::with(['ad', 'generation']);
 
-    if ($request->filled('ads_id')) {
-        $query->where('ads_id', $request->ads_id);
-    }
+        if ($request->filled('ads_id')) {
+            $query->where('ads_id', $request->ads_id);
+        }
 
-    if ($request->filled('platform')) {
-        $query->where('platform', $request->platform);
-    }
+        if ($request->filled('platform')) {
+            $query->where('platform', $request->platform);
+        }
 
-    if ($request->filled('status')) {
-        $query->where('status', $request->status);
-    }
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
 
-    $schedules = $query
-        ->orderBy('scheduled_at', 'asc')
-        ->paginate(10);
+        $schedules = $query
+            ->where('user_id', $user->id)
+            ->orderBy('scheduled_at', 'asc')
+            ->paginate(10);
 
         // $query = AdSchedule::query();
 
@@ -100,14 +110,17 @@ class AdScheduleController extends Controller
      *         name="id",
      *         in="path",
      *         required=true,
+     *
      *         @OA\Schema(type="integer", example=1)
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Ad schedule found",
+     *
      *         @OA\JsonContent(
      *             type="object",
+     *
      *             @OA\Property(property="id", type="integer", example=1),
      *             @OA\Property(property="ads_id", type="integer", example=12),
      *             @OA\Property(property="platform", type="string", example="instagram"),
@@ -141,15 +154,19 @@ class AdScheduleController extends Controller
      *         name="ads_id",
      *         in="path",
      *         required=true,
+     *
      *         @OA\Schema(type="integer", example=12)
      *     ),
      *
      *     @OA\Response(
      *         response=200,
      *         description="Ad schedules found",
+     *
      *         @OA\JsonContent(
      *             type="array",
+     *
      *             @OA\Items(
+     *
      *                 @OA\Property(property="id", type="integer", example=1),
      *                 @OA\Property(property="ads_id", type="integer", example=12),
      *                 @OA\Property(property="platform", type="string", example="facebook"),

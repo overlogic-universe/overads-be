@@ -3,8 +3,10 @@
 namespace App\Jobs;
 
 use App\Models\AdGeneration;
+use App\Models\Setting;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +20,10 @@ class GenerateAdImageJob implements ShouldQueue
     /**
      * Create a new job instance.
      */
-    public function __construct(public AdGeneration $generation)
+    public function __construct(
+        public AdGeneration $generation,
+        public int $userId
+        )
     {
         //
     }
@@ -29,10 +34,21 @@ class GenerateAdImageJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            //code...
+            $user = Auth::user();
+
+            // code...
             Log::info('[AdImageJob] Started', [
                 'generation_id' => $this->generation->id,
             ]);
+            $setting = Setting::where('user_id', $this->userId)->first();
+            Log::info('[AdImageJob] Setting', [
+                'generation_id' => $this->generation,
+            ]);
+            if (! $setting) {
+                throw new \Exception('Instagram setting not found');
+            }
+            $accessToken = $setting->apiKey;
+            $igUserId = $setting->igId;
 
             $this->generation->update(['status' => 'processing']);
 
@@ -42,7 +58,7 @@ class GenerateAdImageJob implements ShouldQueue
 
             $res = Http::post(
                 'https://llamameta-fake-flux-pro-unlimited.hf.space/gradio_api/call/generate_image',
-                ['data' => [$this->generation->prompt, 'turbo']]
+                ['data' => [$this->generation->prompt, 'flux']]
             );
 
             Log::info('[AdImageJob] Generate request sent', [
@@ -80,7 +96,7 @@ class GenerateAdImageJob implements ShouldQueue
                 }
             }
 
-            if (!$jsonData || !isset($jsonData[0]['url'])) {
+            if (! $jsonData || ! isset($jsonData[0]['url'])) {
                 Log::error('[AdImageJob] Failed to parse HF stream', [
                     'raw' => $body,
                 ]);
@@ -102,7 +118,45 @@ class GenerateAdImageJob implements ShouldQueue
 
             $this->generation->update([
                 'status' => 'generated',
-                'result_media' => $path,
+                'result_media' => $imageUrl,
+            ]);
+
+            // $imagePublicUrl = asset("storage/{$path}");
+
+            // upload ke instagram
+            $mediaRes = Http::withToken($accessToken)->post(
+                "https://graph.instagram.com/v24.0/{$igUserId}/media",
+                [
+                    'image_url' => $imageUrl,
+                ]
+            );
+
+            if (! $mediaRes->successful()) {
+                Log::error('[IG] Media create failed', [
+                    'response' => $mediaRes->body(),
+                ]);
+                throw new \Exception('Failed to create IG media');
+            }
+            $creationId = $mediaRes->json('id');
+
+            // 2️⃣ Publish media
+            $publishRes = Http::withToken($accessToken)->post(
+                "https://graph.instagram.com/v24.0/{$igUserId}/media_publish",
+                [
+                    'creation_id' => $creationId,
+                ]
+            );
+
+            if (! $publishRes->successful()) {
+                Log::error('[IG] Media publish failed', [
+                    'response' => $publishRes->body(),
+                ]);
+                throw new \Exception('Failed to publish IG media');
+            }
+
+            $this->generation->update([
+                'status' => 'uploaded',
+                // 'result_media' => $path,
             ]);
 
             Log::info('[AdImageJob] Finished successfully', [
@@ -110,8 +164,12 @@ class GenerateAdImageJob implements ShouldQueue
                 'path' => $path,
             ]);
         } catch (\Throwable $th) {
-            //throw $th;
-            $this->generation->update(['status' => 'fail']);
+            Log::info('[AdImageJob] Failed', [
+            ]);
+            // throw $th;
+            Log::error($th);
+
+            $this->generation->update(['status' => 'failed']);
         }
     }
 }

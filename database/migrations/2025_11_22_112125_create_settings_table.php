@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('settings', function (Blueprint $table) {
             $table->id()->primary();
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
-            $table->string('key')->index();
-            $table->text('value'); // encrypted JSON/string
+            $table->string('apiKey');
+            $table->text('igId'); // encrypted JSON/string
             $table->timestamps();
         });
     }

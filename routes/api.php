@@ -3,16 +3,15 @@
 use App\Http\Controllers\AdController;
 use App\Http\Controllers\AdGenerationController;
 use App\Http\Controllers\AdScheduleController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\OrdersController;
 use App\Http\Controllers\PackageController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\XenditController;
-use App\Models\AdGeneration;
+use Illuminate\Support\Facades\Route;
 
 // Packages
-Route::get("/packages", [PackageController::class, 'index']);
-
+Route::get('/packages', [PackageController::class, 'index']);
 
 Route::middleware('auth:sanctum')->group(function () {
     // Order
@@ -33,7 +32,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Xendit Webhook
-Route::post('/payment/webhook', [XenditController::class,'webhook']);
+Route::post('/payment/webhook', [XenditController::class, 'webhook']);
 
 // Auth
 Route::controller(AuthController::class)->group(function () {
@@ -44,6 +43,10 @@ Route::controller(AuthController::class)->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    // 🔐 User Settings
+    Route::get('/settings/apikey', [SettingController::class, 'getApiKey']);
+    Route::post('/settings/apikey', [SettingController::class, 'updateApiKey']);
+
     Route::post('/ads', [AdController::class, 'store']);
     Route::post('/ads/{ads}/generate', [AdController::class, 'generate']);
     Route::post('/ads/{ads}/schedule', [AdController::class, 'schedule']);
@@ -52,14 +55,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/ads-generations/{id}', [AdGenerationController::class, 'show']);
     Route::get('/ads/{ads}/generations', [AdGenerationController::class, 'byAd']);
     Route::get('/ads/{ads}/generations', [AdGenerationController::class, 'byAd']);
-  // Ad Schedules ✨
+    
+    // Ad Schedules ✨
     Route::get('/ad-schedules', [AdScheduleController::class, 'index']);
     Route::get('/ad-schedules/{id}', [AdScheduleController::class, 'show']);
     Route::get('/ads/{ads}/schedules', [AdScheduleController::class, 'byAd']);
 });
 
 // Route::get('/ads/schedules', [AdScheduleController::class, 'index']);
-
 
 // Route::post('/register', [AuthController::class, 'register']);
 // Route::post('/login', [AuthController::class, 'login']);
