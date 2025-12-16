@@ -286,7 +286,7 @@ class AdController extends Controller
             ]);
 
             // 3️⃣ Dispatch job DENGAN DELAY ⏰
-            GenerateAdImageJob::dispatch($generation)
+            GenerateAdImageJob::dispatch($generation, $user->id)
                 ->delay(Carbon::parse($request->scheduled_at));
         }
 
