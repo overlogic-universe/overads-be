@@ -72,7 +72,6 @@ class GenerateAdImageJob implements ShouldQueue
 
             $geminiApiKey = config('services.xendit.webhook_secret');
 
-
             $prompt = "Create a short, engaging Instagram caption for this ad: \"{$this->generation->prompt}\". Include a clear call to action and up to 10 relevant hashtags. Output only the caption.";
 
             $geminiRes = Http::withHeaders([
@@ -91,6 +90,12 @@ class GenerateAdImageJob implements ShouldQueue
                         ],
                     ],
                 ]
+            );
+
+            $rawCaption = data_get(
+                $geminiRes->json(),
+                'candidates.0.content.parts.0.text',
+                ''
             );
 
             $streamResponse = Http::timeout(1200)
@@ -143,7 +148,7 @@ class GenerateAdImageJob implements ShouldQueue
             $this->generation->update([
                 'status' => 'generated',
                 'result_media' => $imageUrl,
-                'caption' => 'caption',
+                'caption' => $rawCaption,
             ]);
 
             // $imagePublicUrl = asset("storage/{$path}");
@@ -153,7 +158,7 @@ class GenerateAdImageJob implements ShouldQueue
             $mediaRes = Http::withToken($accessToken)->post(
                 "https://graph.instagram.com/v24.0/{$igUserId}/media",
                 [
-                    'caption' => '',
+                    'caption' => $rawCaption,
                     'image_url' => $imageUrl,
                 ]
             );
