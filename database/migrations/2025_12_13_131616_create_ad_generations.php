@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->enum('type', ['image', 'video'])->default('image');
             $table->text('prompt');
+            $table->text('caption');
             $table->enum('status', [
                 'pending',
                 'processing',

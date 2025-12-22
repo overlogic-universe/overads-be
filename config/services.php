@@ -44,5 +44,8 @@ return [
         'secret_key' => env('XENDIT_SECRET_KEY'),
         'webhook_secret' => env('XENDIT_WEBHOOK_SECRET'),
     ],
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
 
 ];
