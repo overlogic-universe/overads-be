@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AdSchedule;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -63,6 +64,10 @@ class AdScheduleController extends Controller
     {
         $user = Auth::user();
 
+        $credit = User::where('id', $user->id)->first();
+        if ($user->credit <= 0) {
+            throw new \Exception('Kredit rendah');
+        }
         $query = AdSchedule::with(['ad', 'generation']);
 
         if ($request->filled('ads_id')) {
